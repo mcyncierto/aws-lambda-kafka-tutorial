@@ -1,0 +1,36 @@
+service: order-service
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-southeast-1 # Change to your preferred AWS region
+  environment:
+    ORDERS_TABLE: orders
+    KAFKA_BROKER: localhost:9092
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource: arn:aws:dynamodb:ap-southeast-1:211507862286:table/orders
+
+functions:
+  createOrder:
+    handler: src/handlers/createOrder.handler
+    events:
+      - http:
+          path: order
+          method: post
+
+resources:
+  Resources:
+    OrdersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: orders
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
